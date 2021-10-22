@@ -29,4 +29,8 @@ public class EventUserServiceImpl implements EventUserService {
            eventUserRepository.save(eventUserModel);
         });
     }
+
+    public List<String> getEventUser(int eventId){
+        return eventUserRepository.getEventUserById(eventId);
+    }
 }
