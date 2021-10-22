@@ -2,19 +2,22 @@ package com.app.calendar.service.serviceImpl;
 
 import com.app.calendar.Constants;
 import com.app.calendar.dto.CreateEventRequestDto;
+import com.app.calendar.dto.GetEventResponseDto;
+import com.app.calendar.exception.EventNotFoundException;
 import com.app.calendar.model.EventModel;
+import com.app.calendar.model.EventTypeModel;
 import com.app.calendar.repository.EventRepository;
+import com.app.calendar.repository.EventTypeRepository;
 import com.app.calendar.service.EventRoomService;
 import com.app.calendar.service.EventService;
 import com.app.calendar.service.EventUserService;
-import org.apache.tomcat.util.bcel.Const;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Calendar;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -25,6 +28,8 @@ public class EventServiceImpl implements EventService {
     EventRoomService eventRoomService;
     @Autowired
     EventUserService eventUserService;
+    @Autowired
+    EventTypeRepository eventTypeRepository;
 
     @Override
     public void createEvent(CreateEventRequestDto createEventRequestDto) throws Exception {
@@ -74,5 +79,21 @@ public class EventServiceImpl implements EventService {
         }else{
             throw new Exception();
         }
+    }
+
+    @Override
+    public GetEventResponseDto getEvent(int eventId) {
+        EventModel eventModel = eventRepository.getById(Long.valueOf(eventId));
+
+        if(ObjectUtils.isEmpty(eventModel)){
+            throw  new EventNotFoundException("Event id:"+eventId+" not found. Enter valid eventId");
+        }
+
+        Optional<EventTypeModel> eventTypeModel = eventTypeRepository.findById(eventModel.getEventTypeId());
+
+        List<String> eventUserModelList = eventUserService.getEventUser(eventId);
+        String eventRoom = eventRoomService.getEventRoom(eventId);
+        GetEventResponseDto getEventResponseDto = new GetEventResponseDto(eventModel.getEventId(),eventTypeModel.get().getEventTypeName(),eventModel.getEventTitle(),eventModel.getStartTime(),eventModel.getEndTime(),eventRoom,eventModel.getOwnerId(),eventUserModelList);
+        return getEventResponseDto;
     }
 }

@@ -45,4 +45,8 @@ public class EventRoomServiceImpl implements EventRoomService {
         eventRoomModel.setEndTime(stop);
         eventRoomRepository.save(eventRoomModel);
     }
+
+    public String getEventRoom(int eventId){
+        return eventRoomRepository.getEventRoomByEventId(eventId);
+    }
 }
