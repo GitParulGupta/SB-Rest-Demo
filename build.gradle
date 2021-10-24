@@ -43,4 +43,15 @@ jacocoTestReport{
 	reports{
 		html.required =true
 	}
+
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					"com/app/calendar/**/Constants.class",
+					"com/app/calendar/**/*Model.*",
+					"com/app/calendar/**/*Dto.*",
+					"**/config/*"
+			])
+		}))
+	}
 }

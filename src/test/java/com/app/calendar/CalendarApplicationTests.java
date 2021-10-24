@@ -10,4 +10,8 @@ class CalendarApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+	public void main(){
+		CalendarApplication.main(new String[]{});
+	}
 }
