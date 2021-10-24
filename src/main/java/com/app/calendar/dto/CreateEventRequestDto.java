@@ -75,4 +75,14 @@ public class CreateEventRequestDto {
     public void setEventUser(List<String> eventUser) {
         this.eventUser = eventUser;
     }
+
+    public CreateEventRequestDto(String eventTypeId, String eventTitle, LocalDateTime eventDateTime, int eventDurationInMins, String roomId, String ownerId, List<String> eventUser) {
+        this.eventTypeId = eventTypeId;
+        this.eventTitle = eventTitle;
+        this.eventDateTime = eventDateTime;
+        this.eventDurationInMins = eventDurationInMins;
+        this.roomId = roomId;
+        this.ownerId = ownerId;
+        this.eventUser = eventUser;
+    }
 }
