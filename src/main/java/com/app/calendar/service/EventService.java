@@ -7,6 +7,8 @@ public interface EventService {
 
     public void createEvent(CreateEventRequestDto event) throws Exception;
 
-    public GetEventResponseDto getEvent(int eventId);
+    public GetEventResponseDto getEvent(Long eventId);
+
+    public void updateEvent(CreateEventRequestDto event, Long eventId) throws Exception;
 
 }

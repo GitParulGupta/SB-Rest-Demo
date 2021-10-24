@@ -46,7 +46,11 @@ public class EventRoomServiceImpl implements EventRoomService {
         eventRoomRepository.save(eventRoomModel);
     }
 
-    public String getEventRoom(int eventId){
+    public String getEventRoom(Long eventId){
         return eventRoomRepository.getEventRoomByEventId(eventId);
+    }
+
+    public void updateEventRoom(Long eventId, String roomId,LocalDateTime start, LocalDateTime stop){
+        eventRoomRepository.updateRoomByEventId(eventId,roomId,start,stop);
     }
 }
