@@ -100,4 +100,13 @@ public class EventModel {
         this.endTime = endTime;
         this.ownerId = ownerId;
     }
+
+    public EventModel(Long eventId, String eventTypeId, String eventTitle, LocalDateTime startTime, LocalDateTime endTime, String ownerId) {
+        this.eventId = eventId;
+        this.eventTypeId = eventTypeId;
+        this.eventTitle = eventTitle;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.ownerId = ownerId;
+    }
 }

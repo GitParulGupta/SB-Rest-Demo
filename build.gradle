@@ -2,6 +2,7 @@ plugins {
 	id 'org.springframework.boot' version '2.5.5'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+	id 'jacoco'
 }
 
 group = 'com.app'
@@ -23,9 +24,23 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator:2.5.5'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.5.5'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test:2.5.5'
+	testImplementation 'org.mockito:mockito-core:2.1.0'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+	testImplementation 'org.hamcrest:hamcrest:2.1'
 	implementation 'com.h2database:h2'
 }
 
 test {
-	//useJUnitPlatform()
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacoco{
+	reportsDirectory = file("$buildDir/jacoco")
+}
+
+jacocoTestReport{
+	reports{
+		html.required =true
+	}
 }
