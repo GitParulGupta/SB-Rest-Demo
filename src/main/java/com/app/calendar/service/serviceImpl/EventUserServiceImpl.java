@@ -30,7 +30,12 @@ public class EventUserServiceImpl implements EventUserService {
         });
     }
 
-    public List<String> getEventUser(int eventId){
+    public List<String> getEventUser(Long eventId){
         return eventUserRepository.getEventUserById(eventId);
+    }
+
+    @Override
+    public void deleteEventUser(Long eventId) {
+        eventUserRepository.deleteEventUserById(eventId);
     }
 }
