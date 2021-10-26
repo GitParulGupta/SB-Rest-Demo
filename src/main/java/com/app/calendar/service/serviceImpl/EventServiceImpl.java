@@ -4,9 +4,10 @@ import com.app.calendar.Constants;
 import com.app.calendar.dto.CreateEventRequestDto;
 import com.app.calendar.dto.GetEventResponseDto;
 import com.app.calendar.exception.EventNotFoundException;
+import com.app.calendar.exception.InvalidEventTypeException;
 import com.app.calendar.exception.InvalidEventUpdateException;
+import com.app.calendar.exception.RoomUnavailableException;
 import com.app.calendar.model.EventModel;
-import com.app.calendar.model.EventTypeModel;
 import com.app.calendar.repository.EventRepository;
 import com.app.calendar.repository.EventTypeRepository;
 import com.app.calendar.service.EventRoomService;
@@ -14,10 +15,8 @@ import com.app.calendar.service.EventService;
 import com.app.calendar.service.EventUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,51 +33,60 @@ public class EventServiceImpl implements EventService {
     EventTypeRepository eventTypeRepository;
 
     @Override
-    public void createEvent(CreateEventRequestDto createEventRequestDto) throws Exception {
+    public GetEventResponseDto createEvent(CreateEventRequestDto createEventRequestDto) throws Exception {
 
         String eventType = createEventRequestDto.getEventTypeId();
-
+        GetEventResponseDto getEventResponseDto = null;
         switch(eventType){
             case "M":
-                createMeetingEvent(createEventRequestDto);
+                getEventResponseDto = createMeetingEvent(createEventRequestDto);
                 break;
             case "B":
-                createFullDayEvent(createEventRequestDto);
+                getEventResponseDto = createFullDayEvent(createEventRequestDto);
                 break;
             case "H":
-                createFullDayEvent(createEventRequestDto);
+                getEventResponseDto = createFullDayEvent(createEventRequestDto);
                 break;
             default:
-                throw new Exception();
+                throw new InvalidEventTypeException("Invalid Event type exception");
         }
+
+        return getEventResponseDto;
     }
 
-    public void createFullDayEvent(CreateEventRequestDto createEventRequestDto){
+    private GetEventResponseDto createFullDayEvent(CreateEventRequestDto createEventRequestDto){
         LocalDateTime start = createEventRequestDto.getEventDateTime();
         LocalDateTime end = start.plusMinutes(Constants.fullDayEventDurationMins);
 
         EventModel eventModel = new EventModel(createEventRequestDto.getEventTypeId(), createEventRequestDto.getEventTitle(), start,end, createEventRequestDto.getOwnerId());
 
-        eventRepository.save(eventModel);
+        EventModel eventModelCreated = eventRepository.save(eventModel);
+        String eventTypeName = eventTypeRepository.getEventTypeById(eventModelCreated.getEventTypeId());
+        GetEventResponseDto getEventResponseDto = new GetEventResponseDto(eventModelCreated.getEventId(),eventTypeName,eventModelCreated.getEventTitle(),start,end,null,null,null);
+        return  getEventResponseDto;
     }
 
-    public void createMeetingEvent(CreateEventRequestDto createEventRequestDto) throws Exception {
+    private GetEventResponseDto createMeetingEvent(CreateEventRequestDto createEventRequestDto) throws Exception {
 
         LocalDateTime startLocalDateTime = createEventRequestDto.getEventDateTime();
         LocalDateTime endLocalDateTime = startLocalDateTime.plusMinutes(createEventRequestDto.getEventDurationInMins());
         EventModel eventModel = new EventModel(createEventRequestDto.getEventTypeId(), createEventRequestDto.getEventTitle(), startLocalDateTime,endLocalDateTime, createEventRequestDto.getOwnerId());
 
         boolean isAvailable = eventRoomService.checkAvailability(createEventRequestDto.getRoomId(),startLocalDateTime, endLocalDateTime);
-
+        GetEventResponseDto getEventResponseDto = null;
         if(isAvailable){
             EventModel eventModelCreated = eventRepository.save(eventModel);
             Long eventId = eventModelCreated.getEventId();
             List<String> userIds = createEventRequestDto.getEventUser();
             eventUserService.addEventUser(userIds,eventId,startLocalDateTime,endLocalDateTime);
             eventRoomService.addEventRoom(eventId,createEventRequestDto.getRoomId(),startLocalDateTime,endLocalDateTime);
+            String eventTypeName = eventTypeRepository.getEventTypeById(eventModelCreated.getEventTypeId());
+            getEventResponseDto = new GetEventResponseDto(eventId,eventTypeName,eventModelCreated.getEventTitle(),startLocalDateTime,endLocalDateTime,createEventRequestDto.getRoomId(),createEventRequestDto.getOwnerId(),userIds);
         }else{
-            throw new Exception();
+            throw new RoomUnavailableException(createEventRequestDto.getRoomId()+" is unavailble");
         }
+
+        return getEventResponseDto;
     }
 
     @Override
@@ -97,7 +105,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public void updateEvent(CreateEventRequestDto event, Long eventId) throws Exception {
+    public GetEventResponseDto updateEvent(CreateEventRequestDto event, Long eventId) {
 
         Optional<EventModel> eventModelObj = eventRepository.findById(eventId);
 
@@ -138,7 +146,7 @@ public class EventServiceImpl implements EventService {
             if(isAvailable){
                 eventRoomService.updateEventRoom(eventId,event.getRoomId(),eventModel.getStartTime(), eventModel.getEndTime());
             }else{
-                throw new Exception();
+                throw new RoomUnavailableException("Room unavailable");
             }
         }
 
@@ -147,6 +155,9 @@ public class EventServiceImpl implements EventService {
         List<String> userIds = event.getEventUser();
         eventUserService.addEventUser(userIds,eventId,eventModel.getStartTime(),eventModel.getEndTime());
 
-        eventRepository.save(eventModel);
+        EventModel eventModelCreated = eventRepository.save(eventModel);
+        String eventTypeName = eventTypeRepository.getEventTypeById(eventModelCreated.getEventTypeId());
+        return new GetEventResponseDto(eventId,eventTypeName,eventModelCreated.getEventTitle(),eventModel.getStartTime(), eventModel.getEndTime(),event.getRoomId(),event.getOwnerId(),userIds);
+
     }
 }
