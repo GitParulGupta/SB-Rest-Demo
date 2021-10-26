@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 public class EventController {
@@ -16,12 +19,13 @@ public class EventController {
     @Autowired
     private EventService eventService;
 
-    @PostMapping(path= "/create", consumes = "application/json")
-    public void createEvent(@RequestBody CreateEventRequestDto event) throws Exception {
-        eventService.createEvent(event);
+    @PostMapping(path= "/event", consumes = "application/json")
+    public ResponseEntity<GetEventResponseDto> createEvent(@RequestBody CreateEventRequestDto event) throws Exception {
+        GetEventResponseDto getEventResponseDto =  eventService.createEvent(event);
+        return ResponseEntity.ok(getEventResponseDto);
     }
 
-    @GetMapping("/eventDetail/{eventId}")
+    @GetMapping("event/eventDetail/{eventId}")
     public GetEventResponseDto getEventDetails(@PathVariable Long eventId){
         GetEventResponseDto getEventResponseDto = eventService.getEvent(eventId);
         if(ObjectUtils.isEmpty(getEventResponseDto)){
@@ -30,8 +34,9 @@ public class EventController {
         return getEventResponseDto;
     }
 
-    @PatchMapping("/update/{eventId}")
-    public void updateEvent(@RequestBody CreateEventRequestDto createEventRequestDto, @PathVariable Long eventId) throws Exception {
-        eventService.updateEvent(createEventRequestDto,eventId);
+    @PatchMapping("event/update/{eventId}")
+    public ResponseEntity<GetEventResponseDto> updateEvent(@RequestBody CreateEventRequestDto createEventRequestDto, @PathVariable Long eventId) {
+        GetEventResponseDto getEventResponseDto = eventService.updateEvent(createEventRequestDto,eventId);
+        return ResponseEntity.ok(getEventResponseDto);
     }
 }
